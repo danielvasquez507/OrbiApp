@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  items     Item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  type        String   // "PROJECT", "TASK", "SHOPPING", "EVENT"
+  status      String   @default("active") // "active", "done", "urgent", "hold"
+  context     String?  // "Home", "Work", "Urgente"
+  
+  // Polymorphic fields (can be null depending on type)
+  progress    Int?     // For Projects (0-100)
+  cost        Float?   // For Shopping
+  category    String?  // For Shopping ("Lácteos", "Hardware")
+  date        DateTime? // For Events/Deadlines
+  
+  isShared    Boolean  @default(false)
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
