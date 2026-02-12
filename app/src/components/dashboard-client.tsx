@@ -555,9 +555,11 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
             {/* === HEADER (compact, mobile-first) === */}
             <header className="border-b h-12 flex items-center px-2 sm:px-3 justify-between bg-card/70 glass sticky top-0 z-20">
                 <div className="flex items-center gap-2">
-                    <div className="size-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm">
-                        O
-                    </div>
+                    <img
+                        src="/logo.png"
+                        alt="Orbi Logo"
+                        className="size-7 object-contain rounded-md shadow-sm"
+                    />
                     <span className="font-bold text-base tracking-tight gradient-text">Orbi</span>
                 </div>
 
