@@ -11,6 +11,7 @@ import {
     LayoutGrid,
     ListTodo,
     Lock,
+    Loader2,
     MoreHorizontal,
     Pause,
     Plus,
@@ -21,6 +22,7 @@ import {
     Zap,
 } from "lucide-react"
 import * as React from "react"
+import { useRouter } from "next/navigation"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -83,6 +85,105 @@ function useLongPress(callback: () => void, ms = 500) {
         onMouseUp: stop,
         onMouseLeave: stop,
     }
+}
+
+// === SWIPEABLE WRAPPER ===
+function SwipeableItem({ children, onDelete, className = "" }: {
+    children: React.ReactNode; onDelete: () => void; className?: string
+}) {
+    const [translateX, setTranslateX] = React.useState(0)
+    const [swiping, setSwiping] = React.useState(false)
+    const startXRef = React.useRef(0)
+    const startYRef = React.useRef(0)
+    const isHorizontalRef = React.useRef<boolean | null>(null)
+
+    function handleTouchStart(e: React.TouchEvent) {
+        startXRef.current = e.touches[0].clientX
+        startYRef.current = e.touches[0].clientY
+        isHorizontalRef.current = null
+        setSwiping(true)
+    }
+    function handleTouchMove(e: React.TouchEvent) {
+        if (!swiping) return
+        const dx = e.touches[0].clientX - startXRef.current
+        const dy = e.touches[0].clientY - startYRef.current
+        if (isHorizontalRef.current === null) {
+            isHorizontalRef.current = Math.abs(dx) > Math.abs(dy)
+            if (!isHorizontalRef.current) { setSwiping(false); return }
+        }
+        if (!isHorizontalRef.current) return
+        const clamped = Math.min(0, Math.max(-100, dx))
+        setTranslateX(clamped)
+    }
+    function handleTouchEnd() {
+        if (translateX < -70) {
+            setTranslateX(-100)
+        } else {
+            setTranslateX(0)
+        }
+        setSwiping(false)
+    }
+    function handleDeleteClick() {
+        setTranslateX(0)
+        onDelete()
+    }
+
+    return (
+        <div className={`relative overflow-hidden rounded-xl ${className}`}>
+            {/* Delete action behind */}
+            <div className="absolute inset-y-0 right-0 w-[100px] flex items-center justify-center bg-destructive text-destructive-foreground">
+                <button onClick={handleDeleteClick} className="flex flex-col items-center gap-0.5 p-2">
+                    <Trash2 className="size-5" />
+                    <span className="text-[10px] font-semibold">Eliminar</span>
+                </button>
+            </div>
+            {/* Content */}
+            <div
+                className="relative bg-background"
+                style={{ transform: `translateX(${translateX}px)`, transition: swiping ? 'none' : 'transform 0.25s ease-out' }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                {children}
+            </div>
+        </div>
+    )
+}
+
+// === PULL TO REFRESH ===
+function usePullToRefresh() {
+    const router = useRouter()
+    const [pulling, setPulling] = React.useState(false)
+    const [pullY, setPullY] = React.useState(0)
+    const [refreshing, setRefreshing] = React.useState(false)
+    const startYRef = React.useRef(0)
+    const threshold = 80
+
+    const handlers = {
+        onTouchStart: (e: React.TouchEvent) => {
+            if (window.scrollY === 0) {
+                startYRef.current = e.touches[0].clientY
+                setPulling(true)
+            }
+        },
+        onTouchMove: (e: React.TouchEvent) => {
+            if (!pulling || window.scrollY > 0) return
+            const dy = e.touches[0].clientY - startYRef.current
+            if (dy > 0) setPullY(Math.min(dy * 0.5, threshold * 1.5))
+        },
+        onTouchEnd: () => {
+            if (pullY >= threshold && !refreshing) {
+                setRefreshing(true)
+                router.refresh()
+                setTimeout(() => { setRefreshing(false); setPullY(0) }, 1000)
+            } else {
+                setPullY(0)
+            }
+            setPulling(false)
+        },
+    }
+    return { handlers, pullY, refreshing }
 }
 
 // === HOJA DE ACCIÓN DEL ÍTEM (Hoja inferior al presionar prolongadamente) ===
@@ -404,10 +505,15 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
     const [items, setItems] = React.useState(initialItems)
     const [spaceFilter, setSpaceFilter] = React.useState("all")
     const [date, setDate] = React.useState<Date | undefined>(new Date())
+    const [activeTab, setActiveTab] = React.useState("operations")
+    const [fabOpen, setFabOpen] = React.useState(false)
 
     // Hoja de acción al presionar prolongadamente
     const [sheetItem, setSheetItem] = React.useState<ItemData | null>(null)
     const [sheetOpen, setSheetOpen] = React.useState(false)
+
+    // Pull-to-refresh
+    const { handlers: pullHandlers, pullY, refreshing } = usePullToRefresh()
 
     function openItemSheet(item: ItemData) {
         setSheetItem(item)
@@ -430,18 +536,32 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
     async function handleToggle(id: string) { await toggleItemStatus(id) }
 
+    async function handleSwipeDelete(id: string) {
+        await deleteItem(id)
+        toast.success("Eliminado")
+    }
+
     return (
-        <div className="min-h-screen bg-background text-foreground pb-6">
+        <div className="min-h-screen bg-background text-foreground pb-20 sm:pb-6" {...pullHandlers}>
+            {/* Pull-to-refresh indicator */}
+            {(pullY > 0 || refreshing) && (
+                <div className="flex justify-center items-center transition-all overflow-hidden sm:hidden" style={{ height: pullY }}>
+                    {refreshing
+                        ? <Loader2 className="size-5 text-primary animate-spin" />
+                        : <span className="text-xs text-muted-foreground">{pullY >= 80 ? "↻ Suelta para refrescar" : "↓ Desliza para refrescar"}</span>
+                    }
+                </div>
+            )}
             {/* === HEADER (compact, mobile-first) === */}
             <header className="border-b h-12 flex items-center px-3 justify-between bg-card/70 glass sticky top-0 z-20">
                 <div className="flex items-center gap-2">
                     <div className="size-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm">
                         O
                     </div>
-                    <span className="font-bold text-base tracking-tight gradient-text hidden sm:block">Orbi</span>
+                    <span className="font-bold text-base tracking-tight gradient-text">Orbi</span>
                 </div>
 
-                <div className="flex-1 mx-3 max-w-lg">
+                <div className="flex-1 mx-3 max-w-lg hidden sm:block">
                     <QuickCapture />
                 </div>
 
@@ -462,22 +582,28 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
             </header>
 
             {/* === TABS + FILTER === */}
-            <Tabs defaultValue="operations" className="w-full">
-                <div className="sticky top-12 z-10 bg-background/90 glass border-b px-3 py-2 flex items-center justify-between gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                {/* Desktop top tabs — hidden on mobile where bottom tab bar is used */}
+                <div className="hidden sm:flex sticky top-12 z-10 bg-background/90 glass border-b px-3 py-2 items-center justify-between gap-2">
                     <TabsList className="h-9 grid grid-cols-4 flex-1 max-w-[400px]">
                         <TabsTrigger value="projects" className="text-xs gap-1 px-2">
-                            <LayoutGrid className="size-3.5" /> <span className="hidden sm:inline">Proyectos</span>
+                            <LayoutGrid className="size-3.5" /> Proyectos
                         </TabsTrigger>
                         <TabsTrigger value="operations" className="text-xs gap-1 px-2">
-                            <ListTodo className="size-3.5" /> <span className="hidden sm:inline">Tareas</span>
+                            <ListTodo className="size-3.5" /> Tareas
                         </TabsTrigger>
                         <TabsTrigger value="logistics" className="text-xs gap-1 px-2">
-                            <ShoppingCart className="size-3.5" /> <span className="hidden sm:inline">Compras</span>
+                            <ShoppingCart className="size-3.5" /> Compras
                         </TabsTrigger>
                         <TabsTrigger value="calendar" className="text-xs gap-1 px-2">
-                            <CalendarIcon className="size-3.5" /> <span className="hidden sm:inline">Agenda</span>
+                            <CalendarIcon className="size-3.5" /> Agenda
                         </TabsTrigger>
                     </TabsList>
+                    <SpaceFilter value={spaceFilter} onChange={setSpaceFilter} />
+                </div>
+
+                {/* Mobile filter bar */}
+                <div className="sm:hidden sticky top-12 z-10 bg-background/90 glass border-b px-3 py-2 flex items-center justify-between">
                     <SpaceFilter value={spaceFilter} onChange={setSpaceFilter} />
                 </div>
 
@@ -558,7 +684,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 Hoy, {new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long" })}
                             </h2>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                                Mantén presionado para editar · Toca ✓ para completar
+                                Desliza ← para eliminar · Mantén presionado para editar
                             </p>
                         </div>
 
@@ -572,7 +698,9 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 </CardHeader>
                                 <CardContent className="p-1.5 pt-0 space-y-0.5">
                                     {tasks.filter(t => t.context === "Urgente" && t.status !== "done").map(t => (
-                                        <TaskItem key={t.id} item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                        <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
+                                            <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                        </SwipeableItem>
                                     ))}
                                 </CardContent>
                             </Card>
@@ -585,7 +713,9 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                             </CardHeader>
                             <CardContent className="p-1.5 pt-0 space-y-0.5">
                                 {tasks.filter(t => t.context !== "Urgente").map(t => (
-                                    <TaskItem key={t.id} item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                    <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
+                                        <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                    </SwipeableItem>
                                 ))}
                                 {tasks.filter(t => t.context !== "Urgente").length === 0 && (
                                     <p className="text-xs text-muted-foreground text-center py-6">
@@ -604,7 +734,9 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 </summary>
                                 <div className="space-y-0.5 ml-1">
                                     {tasks.filter(t => t.status === "done").map(t => (
-                                        <TaskItem key={t.id} item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                        <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
+                                            <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                        </SwipeableItem>
                                     ))}
                                 </div>
                             </details>
@@ -635,7 +767,9 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 </div>
                                 <div className="space-y-1.5">
                                     {catItems.map(s => (
-                                        <ShoppingItem key={s.id} item={s} onToggle={() => handleToggle(s.id)} onLongPress={() => openItemSheet(s)} />
+                                        <SwipeableItem key={s.id} onDelete={() => handleSwipeDelete(s.id)}>
+                                            <ShoppingItem item={s} onToggle={() => handleToggle(s.id)} onLongPress={() => openItemSheet(s)} />
+                                        </SwipeableItem>
                                     ))}
                                 </div>
                             </div>
@@ -709,6 +843,34 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
                 </div>
             </Tabs>
+
+            {/* === BOTTOM TAB BAR (mobile only) === */}
+            <nav className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 glass border-t sm:hidden bottom-nav">
+                <div className="grid grid-cols-4 h-14">
+                    {[
+                        { key: "projects", label: "Proyectos", icon: LayoutGrid },
+                        { key: "operations", label: "Tareas", icon: ListTodo },
+                        { key: "logistics", label: "Compras", icon: ShoppingCart },
+                        { key: "calendar", label: "Agenda", icon: CalendarIcon },
+                    ].map(({ key, label, icon: Icon }) => (
+                        <button
+                            key={key}
+                            onClick={() => setActiveTab(key)}
+                            className={`flex flex-col items-center justify-center gap-0.5 transition-colors touch-manipulation ${activeTab === key ? "text-primary" : "text-muted-foreground"
+                                }`}
+                        >
+                            <Icon className={`size-5 ${activeTab === key ? "stroke-[2.5]" : ""}`} />
+                            <span className="text-[10px] font-medium">{label}</span>
+                        </button>
+                    ))}
+                </div>
+                <div className="h-safe" />
+            </nav>
+
+            {/* === FAB - Quick Capture (mobile only) === */}
+            <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom)+12px)] right-4 z-30 sm:hidden">
+                <QuickCapture fabMode />
+            </div>
 
             {/* === ACTION SHEET (Long press result) === */}
             <ItemActionSheet item={sheetItem} open={sheetOpen} onOpenChange={setSheetOpen} />

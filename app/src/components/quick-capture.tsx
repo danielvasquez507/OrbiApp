@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { createItem } from "@/app/actions"
 import { toast } from "sonner"
 
-export function QuickCapture() {
+export function QuickCapture({ fabMode = false }: { fabMode?: boolean }) {
     const [open, setOpen] = React.useState(false)
     const [loading, setLoading] = React.useState(false)
 
@@ -54,22 +54,35 @@ export function QuickCapture() {
         }
     }
 
+    const fabTrigger = (
+        <button
+            onClick={() => setOpen(true)}
+            className="size-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform fab-pulse touch-manipulation"
+        >
+            <Plus className="size-6" />
+        </button>
+    )
+
+    const inlineTrigger = (
+        <div className="relative w-full cursor-pointer" onClick={() => setOpen(true)}>
+            <Zap className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+                readOnly
+                placeholder="Captura rápida... (⌘K)"
+                className="w-full bg-muted/50 pl-9 h-9 cursor-pointer focus-visible:ring-1"
+            />
+            <div className="absolute right-1.5 top-1.5 flex gap-1">
+                <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <span className="text-xs">⌘</span>K
+                </kbd>
+            </div>
+        </div>
+    )
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="relative w-full cursor-pointer" onClick={() => setOpen(true)}>
-                    <Zap className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        readOnly
-                        placeholder="Captura rápida... (⌘K)"
-                        className="w-full bg-muted/50 pl-9 h-9 cursor-pointer focus-visible:ring-1"
-                    />
-                    <div className="absolute right-1.5 top-1.5 flex gap-1">
-                        <kbd className="pointer-events-none inline-flex h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                            <span className="text-xs">⌘</span>K
-                        </kbd>
-                    </div>
-                </div>
+                {fabMode ? fabTrigger : inlineTrigger}
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-[500px]">
