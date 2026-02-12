@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -321,17 +322,30 @@ function StatCard({ label, value, icon: Icon, gradient, delay }: {
     label: string; value: string | number; icon: any; gradient: string; delay: number
 }) {
     return (
-        <div className={`${gradient} rounded-xl p-2.5 sm:p-3 border animate-fade-in card-hover`} style={{ animationDelay: `${delay}ms` }}>
-            <div className="flex items-center justify-between">
+        <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: delay / 1000, type: "spring", stiffness: 260, damping: 20 }}
+            className={`${gradient} rounded-xl p-3 sm:p-4 border border-border/40 backdrop-blur-sm shadow-sm relative overflow-hidden group`}
+        >
+            <div className="flex items-center justify-between relative z-10">
                 <div>
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-                    <p className="text-xl font-bold mt-0.5">{value}</p>
+                    <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">{label}</p>
+                    <motion.p
+                        key={value}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-3xl font-black mt-0.5"
+                    >
+                        {value}
+                    </motion.p>
                 </div>
-                <div className="size-8 rounded-lg bg-background/60 flex items-center justify-center">
-                    <Icon className="size-4 text-primary" />
+                <div className="size-9 rounded-lg bg-background/50 flex items-center justify-center border border-border/20 group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="size-5 text-primary" />
                 </div>
             </div>
-        </div>
+            <div className="absolute -bottom-1 -right-1 size-14 bg-primary/5 rounded-full blur-xl group-hover:bg-primary/10 transition-colors" />
+        </motion.div>
     )
 }
 
@@ -343,43 +357,92 @@ function ProjectCard({ item, children: subtasks, onLongPress }: {
     const [expanded, setExpanded] = React.useState(false)
     const tasks = subtasks || []
     const done = tasks.filter(s => s.status === "done").length
+    const progress = item.progress || 0
 
     return (
-        <Card className="card-hover animate-fade-in overflow-hidden touch-manipulation rounded-lg sm:rounded-xl" {...longPress}>
-            <CardHeader className="p-2.5 sm:p-3 pb-2">
-                <div className="flex justify-between items-start gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {tasks.length > 0 && (
-                            <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-foreground shrink-0">
-                                {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                            </button>
-                        )}
-                        <span className="text-sm font-semibold truncate">{item.title}</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {item.visibility === "shared" && <Users className="size-3 text-blue-500" />}
-                        <Badge variant={item.status === "active" ? "default" : item.status === "urgent" ? "destructive" : "secondary"} className="text-[10px] h-5">
-                            {item.status === "active" ? "Activo" : item.status === "hold" ? "Espera" : item.status === "done" ? "Listo" : item.status}
-                        </Badge>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-2.5 sm:p-3 pt-0 space-y-2">
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full animate-progress" style={{ width: `${item.progress || 0}%` }} />
-                </div>
-                <div className="flex justify-between items-center text-[11px] text-muted-foreground">
-                    <span>{item.progress || 0}%</span>
-                    {tasks.length > 0 && <span>{done}/{tasks.length} pasos</span>}
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            whileTap={{ scale: 0.985 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+            <Card className="overflow-hidden border-border/40 bg-card/60 backdrop-blur-md touch-manipulation hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 rounded-xl group" {...longPress}>
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-muted overflow-hidden">
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full bg-primary"
+                        style={{
+                            boxShadow: progress > 0 ? "0 0 10px rgba(var(--primary), 0.5)" : "none"
+                        }}
+                    />
                 </div>
 
-                {expanded && tasks.length > 0 && (
-                    <div className="space-y-1 pt-1 border-t">
-                        {tasks.map(sub => <SubtaskItem key={sub.id} item={sub} />)}
+                <CardHeader className="p-3 pb-2 pt-4">
+                    <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {tasks.length > 0 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
+                                    className="text-muted-foreground hover:text-foreground shrink-0 size-6 flex items-center justify-center rounded-full hover:bg-muted/80 transition-colors"
+                                >
+                                    <motion.div animate={{ rotate: expanded ? 90 : 0 }}>
+                                        <ChevronRight className="size-4" />
+                                    </motion.div>
+                                </button>
+                            )}
+                            <span className="text-base font-bold tracking-tight truncate group-hover:text-primary transition-colors">{item.title}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {item.visibility === "shared" && <Users className="size-3.5 text-primary/60" />}
+                            <Badge className={`text-[10px] font-bold px-2 h-5 border-none shadow-none ${item.status === "urgent" ? "bg-red-500/10 text-red-500 uppercase" :
+                                item.status === "active" ? "bg-primary/10 text-primary uppercase" :
+                                    "bg-muted text-muted-foreground uppercase"
+                                }`}>
+                                {item.status === "active" ? "Activo" : item.status === "hold" ? "Espera" : "Listo"}
+                            </Badge>
+                        </div>
                     </div>
-                )}
-            </CardContent>
-        </Card>
+                </CardHeader>
+                <CardContent className="p-3 pt-1 space-y-2.5">
+                    <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-muted-foreground/60">
+                        <span>Progreso</span>
+                        <span className="text-primary/80">{progress}%</span>
+                    </div>
+
+                    <AnimatePresence>
+                        {expanded && tasks.length > 0 && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden bg-muted/20 rounded-lg border border-border/20"
+                            >
+                                <div className="p-1 space-y-0.5">
+                                    {tasks.map(sub => <SubtaskItem key={sub.id} item={sub} />)}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                        <div className="flex -space-x-1">
+                            <Avatar className="size-6 border border-background ring-1 ring-border/20">
+                                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">D</AvatarFallback>
+                            </Avatar>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-muted-foreground/70">
+                                {done}/{tasks.length} PASOS
+                            </span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </motion.div>
     )
 }
 
@@ -399,22 +462,55 @@ function TaskItem({ item, onToggle, onLongPress }: {
     item: ItemData; onToggle: () => void; onLongPress: () => void
 }) {
     const longPress = useLongPress(onLongPress)
+    const isDone = item.status === "done"
+
     return (
-        <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 hover:bg-muted/50 active:bg-muted rounded-xl transition-all animate-fade-in touch-manipulation" {...longPress}>
-            <Checkbox checked={item.status === "done"} onCheckedChange={onToggle} className="size-5" />
-            <div className="flex-1 min-w-0">
-                <span className={`text-sm font-medium block truncate ${item.status === "done" ? "line-through text-muted-foreground" : ""}`}>
-                    {item.title}
-                </span>
+        <motion.div
+            layout
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            className="group"
+            {...longPress}
+        >
+            <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-primary/5 active:bg-primary/10 rounded-xl transition-all touch-manipulation relative overflow-hidden">
+                <Checkbox
+                    checked={isDone}
+                    onCheckedChange={onToggle}
+                    className="size-5 sm:size-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all relative z-10"
+                />
+
+                <div className="flex-1 min-w-0 relative z-10">
+                    <div className="relative inline-block max-w-full">
+                        <span className={`text-base font-semibold block truncate transition-colors duration-500 ${isDone ? "text-muted-foreground/40" : "text-foreground"
+                            }`}>
+                            {item.title}
+                        </span>
+                        {isDone && (
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "100%" }}
+                                className="absolute top-1/2 left-0 h-[1.5px] bg-muted-foreground/30 -translate-y-1/2"
+                                style={{ transformOrigin: "left" }}
+                            />
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs font-bold uppercase tracking-tight ${item.context === "Urgente" ? "text-red-500/60" : "text-muted-foreground/50"
+                            }`}>
+                            {item.context || "General"}
+                        </span>
+                        {item.visibility === "shared" && <Users className="size-3 text-muted-foreground/30" />}
+                    </div>
+                </div>
+
+                <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="size-5 text-primary/30" />
+                </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-                {item.visibility === "shared" && <Users className="size-3 text-blue-500" />}
-                <Badge variant="outline" className={`text-[10px] h-5 ${item.context === "Urgente" ? "text-red-500 border-red-500/40" :
-                    item.context === "Trabajo" ? "text-blue-500 border-blue-500/40" :
-                        "text-emerald-500 border-emerald-500/40"
-                    }`}>{item.context || "General"}</Badge>
-            </div>
-        </div>
+        </motion.div>
     )
 }
 
@@ -424,17 +520,17 @@ function ShoppingItem({ item, onToggle, onLongPress }: {
 }) {
     const longPress = useLongPress(onLongPress)
     return (
-        <div className={`flex items-center justify-between p-2.5 sm:p-3 border rounded-lg sm:rounded-xl transition-all animate-fade-in touch-manipulation active:scale-[0.98] ${item.status === "done" ? "opacity-50 bg-muted/20" : "bg-card"}`} {...longPress}>
+        <div className={`flex items-center justify-between p-3 sm:p-4 border rounded-xl sm:rounded-2xl transition-all animate-fade-in touch-manipulation active:scale-[0.98] ${item.status === "done" ? "opacity-50 bg-muted/20" : "bg-card"}`} {...longPress}>
             <div className="flex items-center gap-3 min-w-0">
-                <Checkbox checked={item.status === "done"} onCheckedChange={onToggle} className="size-5" />
+                <Checkbox checked={item.status === "done"} onCheckedChange={onToggle} className="size-5 sm:size-6" />
                 <div className="min-w-0">
-                    <p className={`font-medium text-sm truncate ${item.status === "done" ? "line-through" : ""}`}>{item.title}</p>
-                    <p className="text-[11px] text-muted-foreground capitalize">{item.category}</p>
+                    <p className={`font-semibold text-base truncate ${item.status === "done" ? "line-through" : ""}`}>{item.title}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{item.category}</p>
                 </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-                {item.visibility === "shared" && <Users className="size-3 text-blue-500" />}
-                <p className="font-mono text-sm font-semibold">${item.cost?.toFixed(2) || "0.00"}</p>
+                {item.visibility === "shared" && <Users className="size-3.5 text-blue-500" />}
+                <p className="font-mono text-base font-bold text-primary">${item.cost?.toFixed(2) || "0.00"}</p>
             </div>
         </div>
     )
@@ -556,7 +652,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
             <header className="border-b h-12 flex items-center px-2 sm:px-3 justify-between bg-card/70 glass sticky top-0 z-20">
                 <div className="flex items-center gap-2">
                     <img
-                        src="/logo.png"
+                        src="/Orbi.png"
                         alt="Orbi Logo"
                         className="size-7 object-contain rounded-md shadow-sm"
                     />
@@ -625,12 +721,14 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                     <span className="size-1.5 rounded-full bg-blue-500" /> En Progreso
                                 </p>
                                 <div className="space-y-2">
-                                    {projects.filter(p => p.status === "active" || p.status === "urgent").map(p => (
-                                        <div key={p.id}>
-                                            <ProjectCard item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
-                                            <AddSubtaskDialog parentId={p.id} />
-                                        </div>
-                                    ))}
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        {projects.filter(p => p.status === "active" || p.status === "urgent").map(p => (
+                                            <motion.div key={p.id} layout>
+                                                <ProjectCard item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
+                                                <AddSubtaskDialog parentId={p.id} />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         )}
@@ -642,12 +740,14 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                     <span className="size-1.5 rounded-full bg-amber-500" /> Planificación
                                 </p>
                                 <div className="space-y-2">
-                                    {projects.filter(p => p.status === "hold").map(p => (
-                                        <div key={p.id}>
-                                            <ProjectCard item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
-                                            <AddSubtaskDialog parentId={p.id} />
-                                        </div>
-                                    ))}
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        {projects.filter(p => p.status === "hold").map(p => (
+                                            <motion.div key={p.id} layout>
+                                                <ProjectCard item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
+                                                <AddSubtaskDialog parentId={p.id} />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         )}
@@ -659,9 +759,11 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                     <span className="size-1.5 rounded-full bg-emerald-500" /> Completado
                                 </p>
                                 <div className="space-y-2">
-                                    {projects.filter(p => p.status === "done").map(p => (
-                                        <ProjectCard key={p.id} item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
-                                    ))}
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        {projects.filter(p => p.status === "done").map(p => (
+                                            <ProjectCard key={p.id} item={p} children={getChildren(p.id)} onLongPress={() => openItemSheet(p)} />
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         )}
@@ -699,11 +801,13 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-1 sm:p-1.5 pt-0 space-y-0.5">
-                                    {tasks.filter(t => t.context === "Urgente" && t.status !== "done").map(t => (
-                                        <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
-                                            <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
-                                        </SwipeableItem>
-                                    ))}
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        {tasks.filter(t => t.context === "Urgente" && t.status !== "done").map(t => (
+                                            <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
+                                                <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                            </SwipeableItem>
+                                        ))}
+                                    </AnimatePresence>
                                 </CardContent>
                             </Card>
                         )}
@@ -714,11 +818,13 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 <CardTitle className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">📋 Tareas</CardTitle>
                             </CardHeader>
                             <CardContent className="p-1 sm:p-1.5 pt-0 space-y-0.5">
-                                {tasks.filter(t => t.context !== "Urgente").map(t => (
-                                    <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
-                                        <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
-                                    </SwipeableItem>
-                                ))}
+                                <AnimatePresence mode="popLayout" initial={false}>
+                                    {tasks.filter(t => t.context !== "Urgente").map(t => (
+                                        <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
+                                            <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
+                                        </SwipeableItem>
+                                    ))}
+                                </AnimatePresence>
                                 {tasks.filter(t => t.context !== "Urgente").length === 0 && (
                                     <p className="text-xs text-muted-foreground text-center py-6">
                                         Sin tareas. Presiona <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">⌘K</kbd> para agregar.
@@ -787,15 +893,43 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
                     {/* ====== CALENDAR ====== */}
                     <TabsContent value="calendar" className="mt-0 space-y-3 sm:space-y-4">
-                        <Card className="card-hover animate-fade-in rounded-lg sm:rounded-xl">
-                            <CardContent className="p-1 sm:p-2 flex justify-center">
-                                <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md" />
-                            </CardContent>
-                        </Card>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            <Card className="overflow-hidden border-border/40 rounded-xl sm:rounded-2xl shadow-xl shadow-primary/5">
+                                <div className="p-4 sm:p-5 pb-3 bg-gradient-to-r from-primary/10 to-transparent">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-primary capitalize tracking-tighter">
+                                                {date?.toLocaleDateString("es-ES", { weekday: "long" })}
+                                            </h2>
+                                            <p className="text-base font-medium text-muted-foreground capitalize">
+                                                {date?.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                                            </p>
+                                        </div>
+                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full shadow-sm" onClick={() => setDate(new Date())}>
+                                            <CalendarIcon className="size-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <CardContent className="p-0 sm:p-2 flex justify-center bg-card/50 backdrop-blur-sm w-full">
+                                    <Calendar
+                                        mode="single"
+                                        selected={date}
+                                        onSelect={setDate}
+                                        className="rounded-md border-none w-full flex justify-center p-2"
+                                        showOutsideDays={true}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </motion.div>
 
-                        <h3 className="text-sm font-bold">
-                            {date?.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
-                        </h3>
+                        <div className="pt-2 px-1 flex items-center justify-between">
+                            <h3 className="text-lg font-bold tracking-tight">Agenda del Día</h3>
+                            <Badge variant="outline" className="text-xs font-semibold">{events.length} Eventos</Badge>
+                        </div>
 
                         {events.length > 0 ? (
                             <div className="space-y-2">
@@ -848,7 +982,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
             {/* === BOTTOM TAB BAR (mobile only) === */}
             <nav className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 glass border-t sm:hidden bottom-nav">
-                <div className="grid grid-cols-4 h-14">
+                <div className="grid grid-cols-4 h-16 pb-1">
                     {[
                         { key: "projects", label: "Proyectos", icon: LayoutGrid },
                         { key: "operations", label: "Tareas", icon: ListTodo },
@@ -858,11 +992,11 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                         <button
                             key={key}
                             onClick={() => setActiveTab(key)}
-                            className={`flex flex-col items-center justify-center gap-0.5 transition-colors touch-manipulation ${activeTab === key ? "text-primary" : "text-muted-foreground"
+                            className={`flex flex-col items-center justify-center gap-1 transition-colors touch-manipulation active:scale-95 duration-200 ${activeTab === key ? "text-primary" : "text-muted-foreground"
                                 }`}
                         >
-                            <Icon className={`size-5 ${activeTab === key ? "stroke-[2.5]" : ""}`} />
-                            <span className="text-[10px] font-medium">{label}</span>
+                            <Icon className={`size-6 ${activeTab === key ? "fill-primary/20 stroke-[2.5]" : "stroke-[1.5]"}`} />
+                            <span className="text-xs font-semibold tracking-tight">{label}</span>
                         </button>
                     ))}
                 </div>
