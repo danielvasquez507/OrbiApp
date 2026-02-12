@@ -21,26 +21,31 @@ model User {
 }
 
 model Item {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  type        String   // "PROJECT", "TASK", "SHOPPING", "EVENT"
-  status      String   @default("active") // "active", "done", "urgent", "hold"
-  context     String?  // "Home", "Work", "Urgente"
-  
-  // Polymorphic fields (can be null depending on type)
-  progress    Int?     // For Projects (0-100)
-  cost        Float?   // For Shopping
-  category    String?  // For Shopping ("Lácteos", "Hardware")
+  type        String    // "PROJECT", "TASK", "SHOPPING", "EVENT"
+  status      String    @default("active") // "active", "done", "urgent", "hold"
+  context     String?   // "Casa", "Trabajo", "Urgente"
+
+  // Polymorphic fields
+  progress    Int?      // For Projects (0-100)
+  cost        Float?    // For Shopping
+  category    String?   // For Shopping / grouping
   date        DateTime? // For Events/Deadlines
-  
-  isShared    Boolean  @default(false)
+
+  // Collaboration
+  isShared    Boolean   @default(false)
+  visibility  String    @default("personal") // "personal" | "shared"
+
+  // Hierarchy (for subtasks within projects)
+  parentId    String?
+  parent      Item?     @relation("SubItems", fields: [parentId], references: [id])
+  children    Item[]    @relation("SubItems")
+
   ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  owner       User      @relation(fields: [ownerId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
-
-
-
