@@ -553,7 +553,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                 </div>
             )}
             {/* === HEADER (compact, mobile-first) === */}
-            <header className="border-b h-12 flex items-center px-3 justify-between bg-card/70 glass sticky top-0 z-20">
+            <header className="border-b h-12 flex items-center px-2 sm:px-3 justify-between bg-card/70 glass sticky top-0 z-20">
                 <div className="flex items-center gap-2">
                     <div className="size-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm">
                         O
@@ -603,14 +603,14 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                 </div>
 
                 {/* Mobile filter bar */}
-                <div className="sm:hidden sticky top-12 z-10 bg-background/90 glass border-b px-3 py-2 flex items-center justify-between">
+                <div className="sm:hidden sticky top-12 z-10 bg-background/90 glass border-b px-2 py-1.5 flex items-center justify-between">
                     <SpaceFilter value={spaceFilter} onChange={setSpaceFilter} />
                 </div>
 
-                <div className="px-3 pt-4 max-w-4xl mx-auto">
+                <div className="px-2 sm:px-4 pt-3 sm:pt-4 max-w-4xl mx-auto">
 
                     {/* ====== PROJECTS ====== */}
-                    <TabsContent value="projects" className="mt-0 space-y-4">
+                    <TabsContent value="projects" className="mt-0 space-y-3 sm:space-y-4">
                         <div className="grid grid-cols-2 gap-2">
                             <StatCard label="Activos" value={projects.filter(p => p.status === "active").length} icon={TrendingUp} gradient="stat-gradient-1" delay={0} />
                             <StatCard label="En Espera" value={projects.filter(p => p.status === "hold").length} icon={Clock} gradient="stat-gradient-3" delay={60} />
@@ -673,7 +673,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                     </TabsContent>
 
                     {/* ====== OPERATIONS ====== */}
-                    <TabsContent value="operations" className="mt-0 space-y-4">
+                    <TabsContent value="operations" className="mt-0 space-y-3 sm:space-y-4">
                         <div className="grid grid-cols-2 gap-2">
                             <StatCard label="Pendientes" value={tasks.filter(t => t.status !== "done").length} icon={ListTodo} gradient="stat-gradient-1" delay={0} />
                             <StatCard label="Urgentes" value={tasks.filter(t => t.context === "Urgente" && t.status !== "done").length} icon={Zap} gradient="stat-gradient-4" delay={60} />
@@ -744,7 +744,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                     </TabsContent>
 
                     {/* ====== LOGISTICS ====== */}
-                    <TabsContent value="logistics" className="mt-0 space-y-4">
+                    <TabsContent value="logistics" className="mt-0 space-y-3 sm:space-y-4">
                         <div className="grid grid-cols-2 gap-2">
                             <StatCard label="Pendientes" value={shopping.filter(s => s.status !== "done").length} icon={ShoppingCart} gradient="stat-gradient-1" delay={0} />
                             <StatCard label="Total" value={`$${shoppingTotal.toFixed(0)}`} icon={TrendingUp} gradient="stat-gradient-4" delay={60} />
@@ -784,7 +784,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                     </TabsContent>
 
                     {/* ====== CALENDAR ====== */}
-                    <TabsContent value="calendar" className="mt-0 space-y-4">
+                    <TabsContent value="calendar" className="mt-0 space-y-3 sm:space-y-4">
                         <Card className="card-hover animate-fade-in">
                             <CardContent className="p-2 flex justify-center">
                                 <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md" />
