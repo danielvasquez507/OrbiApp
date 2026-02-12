@@ -607,7 +607,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                     <SpaceFilter value={spaceFilter} onChange={setSpaceFilter} />
                 </div>
 
-                <div className="px-2 sm:px-4 pt-3 sm:pt-4 max-w-4xl mx-auto">
+                <div className="px-1.5 sm:px-4 pt-3 sm:pt-4 sm:max-w-4xl sm:mx-auto">
 
                     {/* ====== PROJECTS ====== */}
                     <TabsContent value="projects" className="mt-0 space-y-3 sm:space-y-4">
