@@ -321,7 +321,7 @@ function StatCard({ label, value, icon: Icon, gradient, delay }: {
     label: string; value: string | number; icon: any; gradient: string; delay: number
 }) {
     return (
-        <div className={`${gradient} rounded-xl p-3 border animate-fade-in card-hover`} style={{ animationDelay: `${delay}ms` }}>
+        <div className={`${gradient} rounded-xl p-2.5 sm:p-3 border animate-fade-in card-hover`} style={{ animationDelay: `${delay}ms` }}>
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
@@ -345,8 +345,8 @@ function ProjectCard({ item, children: subtasks, onLongPress }: {
     const done = tasks.filter(s => s.status === "done").length
 
     return (
-        <Card className="card-hover animate-fade-in overflow-hidden touch-manipulation" {...longPress}>
-            <CardHeader className="p-3 pb-2">
+        <Card className="card-hover animate-fade-in overflow-hidden touch-manipulation rounded-lg sm:rounded-xl" {...longPress}>
+            <CardHeader className="p-2.5 sm:p-3 pb-2">
                 <div className="flex justify-between items-start gap-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                         {tasks.length > 0 && (
@@ -364,7 +364,7 @@ function ProjectCard({ item, children: subtasks, onLongPress }: {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="p-3 pt-0 space-y-2">
+            <CardContent className="p-2.5 sm:p-3 pt-0 space-y-2">
                 <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                     <div className="h-full bg-primary rounded-full animate-progress" style={{ width: `${item.progress || 0}%` }} />
                 </div>
@@ -400,7 +400,7 @@ function TaskItem({ item, onToggle, onLongPress }: {
 }) {
     const longPress = useLongPress(onLongPress)
     return (
-        <div className="flex items-center gap-3 p-3 hover:bg-muted/50 active:bg-muted rounded-xl transition-all animate-fade-in touch-manipulation" {...longPress}>
+        <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 hover:bg-muted/50 active:bg-muted rounded-xl transition-all animate-fade-in touch-manipulation" {...longPress}>
             <Checkbox checked={item.status === "done"} onCheckedChange={onToggle} className="size-5" />
             <div className="flex-1 min-w-0">
                 <span className={`text-sm font-medium block truncate ${item.status === "done" ? "line-through text-muted-foreground" : ""}`}>
@@ -424,7 +424,7 @@ function ShoppingItem({ item, onToggle, onLongPress }: {
 }) {
     const longPress = useLongPress(onLongPress)
     return (
-        <div className={`flex items-center justify-between p-3 border rounded-xl transition-all animate-fade-in touch-manipulation active:scale-[0.98] ${item.status === "done" ? "opacity-50 bg-muted/20" : "bg-card"}`} {...longPress}>
+        <div className={`flex items-center justify-between p-2.5 sm:p-3 border rounded-lg sm:rounded-xl transition-all animate-fade-in touch-manipulation active:scale-[0.98] ${item.status === "done" ? "opacity-50 bg-muted/20" : "bg-card"}`} {...longPress}>
             <div className="flex items-center gap-3 min-w-0">
                 <Checkbox checked={item.status === "done"} onCheckedChange={onToggle} className="size-5" />
                 <div className="min-w-0">
@@ -607,7 +607,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                     <SpaceFilter value={spaceFilter} onChange={setSpaceFilter} />
                 </div>
 
-                <div className="px-1.5 sm:px-4 pt-3 sm:pt-4 sm:max-w-4xl sm:mx-auto">
+                <div className="px-3 sm:px-4 pt-2.5 sm:pt-4 sm:max-w-4xl sm:mx-auto">
 
                     {/* ====== PROJECTS ====== */}
                     <TabsContent value="projects" className="mt-0 space-y-3 sm:space-y-4">
@@ -690,13 +690,13 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
                         {/* Urgent */}
                         {tasks.filter(t => t.context === "Urgente" && t.status !== "done").length > 0 && (
-                            <Card className="border-red-500/30">
-                                <CardHeader className="p-3 pb-1">
+                            <Card className="border-red-500/30 rounded-lg sm:rounded-xl">
+                                <CardHeader className="p-2.5 sm:p-3 pb-1">
                                     <CardTitle className="text-xs font-semibold uppercase text-red-500 tracking-wider flex items-center gap-1.5">
                                         <Zap className="size-3" /> Prioritario
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="p-1.5 pt-0 space-y-0.5">
+                                <CardContent className="p-1 sm:p-1.5 pt-0 space-y-0.5">
                                     {tasks.filter(t => t.context === "Urgente" && t.status !== "done").map(t => (
                                         <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
                                             <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
@@ -707,11 +707,11 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                         )}
 
                         {/* Regular tasks */}
-                        <Card>
-                            <CardHeader className="p-3 pb-1">
+                        <Card className="rounded-lg sm:rounded-xl">
+                            <CardHeader className="p-2.5 sm:p-3 pb-1">
                                 <CardTitle className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">📋 Tareas</CardTitle>
                             </CardHeader>
-                            <CardContent className="p-1.5 pt-0 space-y-0.5">
+                            <CardContent className="p-1 sm:p-1.5 pt-0 space-y-0.5">
                                 {tasks.filter(t => t.context !== "Urgente").map(t => (
                                     <SwipeableItem key={t.id} onDelete={() => handleSwipeDelete(t.id)}>
                                         <TaskItem item={t} onToggle={() => handleToggle(t.id)} onLongPress={() => openItemSheet(t)} />
@@ -765,7 +765,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                     <h3 className="font-semibold text-sm">{cat}</h3>
                                     <span className="text-[11px] text-muted-foreground font-mono">${catItems.reduce((s, i) => s + (i.cost || 0), 0).toFixed(2)}</span>
                                 </div>
-                                <div className="space-y-1.5">
+                                <div className="space-y-1 sm:space-y-1.5">
                                     {catItems.map(s => (
                                         <SwipeableItem key={s.id} onDelete={() => handleSwipeDelete(s.id)}>
                                             <ShoppingItem item={s} onToggle={() => handleToggle(s.id)} onLongPress={() => openItemSheet(s)} />
@@ -785,8 +785,8 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
                     {/* ====== CALENDAR ====== */}
                     <TabsContent value="calendar" className="mt-0 space-y-3 sm:space-y-4">
-                        <Card className="card-hover animate-fade-in">
-                            <CardContent className="p-2 flex justify-center">
+                        <Card className="card-hover animate-fade-in rounded-lg sm:rounded-xl">
+                            <CardContent className="p-1 sm:p-2 flex justify-center">
                                 <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md" />
                             </CardContent>
                         </Card>
@@ -798,8 +798,8 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                         {events.length > 0 ? (
                             <div className="space-y-2">
                                 {events.map(ev => (
-                                    <Card key={ev.id} className="border-l-4 border-l-primary card-hover" onClick={() => openItemSheet(ev)}>
-                                        <CardContent className="p-3 flex justify-between items-center">
+                                    <Card key={ev.id} className="border-l-4 border-l-primary card-hover rounded-lg sm:rounded-xl" onClick={() => openItemSheet(ev)}>
+                                        <CardContent className="p-2.5 sm:p-3 flex justify-between items-center">
                                             <div className="min-w-0">
                                                 <p className="font-medium text-sm truncate">{ev.title}</p>
                                                 <p className="text-[11px] text-muted-foreground">{ev.context || "Todo el día"}</p>
@@ -826,8 +826,8 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
                                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Proyectos activos</p>
                                 <div className="space-y-2">
                                     {projects.filter(p => p.status === "active").map(p => (
-                                        <Card key={p.id} className="border-l-4 border-l-amber-500 card-hover" onClick={() => openItemSheet(p)}>
-                                            <CardContent className="p-3 flex justify-between items-center">
+                                        <Card key={p.id} className="border-l-4 border-l-amber-500 card-hover rounded-lg sm:rounded-xl" onClick={() => openItemSheet(p)}>
+                                            <CardContent className="p-2.5 sm:p-3 flex justify-between items-center">
                                                 <div>
                                                     <p className="font-medium text-sm">{p.title}</p>
                                                     <p className="text-[11px] text-muted-foreground">{p.progress || 0}%</p>
