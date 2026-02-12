@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
-// --- Quick Capture: Create any type of item ---
+// --- Captura Rápida: Crear cualquier tipo de ítem ---
 export async function createItem(formData: FormData) {
     const title = formData.get("title") as string
     const type = formData.get("type") as string
@@ -15,7 +15,7 @@ export async function createItem(formData: FormData) {
 
     if (!title || !type) return { error: "Título y tipo son requeridos" }
 
-    // For now, use the first user (single-user mode until auth is added)
+    // Por ahora, usar el primer usuario (modo de usuario único hasta que se añada autenticación)
     const user = await prisma.user.findFirst()
     if (!user) return { error: "No hay usuario registrado" }
 
@@ -38,7 +38,7 @@ export async function createItem(formData: FormData) {
     return { success: true }
 }
 
-// --- Toggle item status ---
+// --- Alternar el estado del ítem ---
 export async function toggleItemStatus(id: string) {
     const item = await prisma.item.findUnique({ where: { id } })
     if (!item) return { error: "Ítem no encontrado" }
@@ -54,7 +54,7 @@ export async function toggleItemStatus(id: string) {
     return { success: true }
 }
 
-// --- Update project progress ---
+// --- Actualizar el progreso del proyecto ---
 export async function updateProgress(id: string, progress: number) {
     await prisma.item.update({
         where: { id },
@@ -68,9 +68,9 @@ export async function updateProgress(id: string, progress: number) {
     return { success: true }
 }
 
-// --- Delete item ---
+// --- Eliminar ítem ---
 export async function deleteItem(id: string) {
-    // Delete children first (subtasks)
+    // Eliminar hijos primero (subtareas)
     await prisma.item.deleteMany({ where: { parentId: id } })
     await prisma.item.delete({ where: { id } })
 
@@ -78,7 +78,7 @@ export async function deleteItem(id: string) {
     return { success: true }
 }
 
-// --- Toggle visibility (personal <-> shared) ---
+// --- Alternar visibilidad (personal <-> compartido) ---
 export async function toggleVisibility(id: string) {
     const item = await prisma.item.findUnique({ where: { id } })
     if (!item) return { error: "Ítem no encontrado" }

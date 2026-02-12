@@ -43,27 +43,27 @@ import { QuickCapture } from "@/components/quick-capture"
 import { toggleItemStatus, toggleVisibility, deleteItem, createItem } from "@/app/actions"
 import { toast } from "sonner"
 
-// --- Types ---
+// --- Tipos ---
 type ItemData = {
     id: string; title: string; description: string | null; type: string; status: string
     context: string | null; progress: number | null; cost: number | null; category: string | null
     date: string | null; isShared: boolean; visibility: string; parentId: string | null; children?: ItemData[]
 }
 
-// === LONG PRESS HOOK ===
+// === HOOK DE PRESIÓN PROLONGADA ===
 function useLongPress(callback: () => void, ms = 500) {
     const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const callbackRef = React.useRef(callback)
     callbackRef.current = callback
 
     const start = React.useCallback((e: React.TouchEvent | React.MouseEvent) => {
-        // Prevent default only on touch to avoid text selection
+        // Prevenir el comportamiento por defecto solo en táctil para evitar la selección de texto
         if ('touches' in e) {
-            // don't preventDefault here as it breaks scroll; handled via CSS
+            // No prevenir el comportamiento por defecto aquí porque rompe el desplazamiento; manejado vía CSS
         }
         timerRef.current = setTimeout(() => {
             callbackRef.current()
-            // Vibrate if available
+            // Vibrar si está disponible
             if (navigator.vibrate) navigator.vibrate(30)
         }, ms)
     }, [ms])
@@ -85,12 +85,12 @@ function useLongPress(callback: () => void, ms = 500) {
     }
 }
 
-// === ITEM ACTION SHEET (Bottom sheet on long-press) ===
+// === HOJA DE ACCIÓN DEL ÍTEM (Hoja inferior al presionar prolongadamente) ===
 function ItemActionSheet({ item, open, onOpenChange }: {
     item: ItemData | null; open: boolean; onOpenChange: (v: boolean) => void
 }) {
     if (!item) return null
-    const currentItem = item // capture for closures
+    const currentItem = item // capturar para cierres (closures)
 
     const statuses = [
         { value: "active", label: "Activo", icon: Check, color: "text-emerald-500" },
@@ -215,7 +215,7 @@ function ItemActionSheet({ item, open, onOpenChange }: {
     )
 }
 
-// === STAT CARD ===
+// === TARJETA DE ESTADÍSTICAS ===
 function StatCard({ label, value, icon: Icon, gradient, delay }: {
     label: string; value: string | number; icon: any; gradient: string; delay: number
 }) {
@@ -234,7 +234,7 @@ function StatCard({ label, value, icon: Icon, gradient, delay }: {
     )
 }
 
-// === PROJECT CARD ===
+// === TARJETA DE PROYECTO ===
 function ProjectCard({ item, children: subtasks, onLongPress }: {
     item: ItemData; children?: ItemData[]; onLongPress: () => void
 }) {
@@ -293,7 +293,7 @@ function SubtaskItem({ item }: { item: ItemData }) {
     )
 }
 
-// === TASK ITEM ===
+// === ÍTEM DE TAREA ===
 function TaskItem({ item, onToggle, onLongPress }: {
     item: ItemData; onToggle: () => void; onLongPress: () => void
 }) {
@@ -317,7 +317,7 @@ function TaskItem({ item, onToggle, onLongPress }: {
     )
 }
 
-// === SHOPPING ITEM ===
+// === ÍTEM DE COMPRA ===
 function ShoppingItem({ item, onToggle, onLongPress }: {
     item: ItemData; onToggle: () => void; onLongPress: () => void
 }) {
@@ -339,7 +339,7 @@ function ShoppingItem({ item, onToggle, onLongPress }: {
     )
 }
 
-// === ADD SUBTASK ===
+// === AGREGAR SUBTAREA ===
 function AddSubtaskDialog({ parentId }: { parentId: string }) {
     const [open, setOpen] = React.useState(false)
     const [loading, setLoading] = React.useState(false)
@@ -375,7 +375,7 @@ function AddSubtaskDialog({ parentId }: { parentId: string }) {
     )
 }
 
-// === SPACE FILTER ===
+// === FILTRO DE ESPACIO ===
 function SpaceFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
         <div className="inline-flex items-center rounded-xl border bg-card p-0.5 gap-0.5 text-xs shadow-sm">
@@ -398,14 +398,14 @@ function SpaceFilter({ value, onChange }: { value: string; onChange: (v: string)
 }
 
 // ============================================
-// === MAIN DASHBOARD ===
+// === PANEL PRINCIPAL (DASHBOARD) ===
 // ============================================
 export default function DashboardClient({ initialItems }: { initialItems: ItemData[] }) {
     const [items, setItems] = React.useState(initialItems)
     const [spaceFilter, setSpaceFilter] = React.useState("all")
     const [date, setDate] = React.useState<Date | undefined>(new Date())
 
-    // Long-press action sheet
+    // Hoja de acción al presionar prolongadamente
     const [sheetItem, setSheetItem] = React.useState<ItemData | null>(null)
     const [sheetOpen, setSheetOpen] = React.useState(false)
 
@@ -416,7 +416,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
 
     React.useEffect(() => { setItems(initialItems) }, [initialItems])
 
-    // Filtered
+    // Filtrados
     const filtered = spaceFilter === "all" ? items : items.filter(i => i.visibility === spaceFilter)
     const projects = filtered.filter(i => i.type === "PROJECT" && !i.parentId)
     const tasks = filtered.filter(i => i.type === "TASK" && !i.parentId)
@@ -424,7 +424,7 @@ export default function DashboardClient({ initialItems }: { initialItems: ItemDa
     const events = filtered.filter(i => i.type === "EVENT")
     const getChildren = (pid: string) => items.filter(i => i.parentId === pid)
 
-    // Stats
+    // Estadísticas
     const shoppingTotal = shopping.reduce((sum, s) => sum + (s.cost || 0), 0)
     const urgentCount = items.filter(i => i.context === "Urgente" && i.status !== "done" && !i.parentId).length
 

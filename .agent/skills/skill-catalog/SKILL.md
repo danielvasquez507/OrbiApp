@@ -12,55 +12,51 @@ This local skill provides awareness and access to the global skills installed on
 
 ## Catalog of Available Skills
 
-1. **accessibility**
-   - **Purpose**: Web accessibility improvements and audits.
-   - **Path**: `C:\Users\dany_\.agents\skills\accessibility`
-
-2. **code-refactoring**
+1. **code-refactoring**
    - **Purpose**: Advanced code refactoring techniques.
    - **Path**: `C:\Users\dany_\.agents\skills\code-refactoring`
 
-3. **cypress**
+2. **cypress**
    - **Purpose**: End-to-end testing with Cypress.
    - **Path**: `C:\Users\dany_\.agents\skills\cypress`
 
-4. **find-skills**
+3. **find-skills**
    - **Purpose**: Utility for searching and managing skills.
    - **Path**: `C:\Users\dany_\.agents\skills\find-skills`
 
-5. **framer-motion**
+4. **framer-motion**
    - **Purpose**: Complex React animations and transitions.
    - **Path**: `C:\Users\dany_\.agents\skills\framer-motion`
 
-6. **jest-react-testing**
+5. **jest-react-testing**
    - **Purpose**: Unit and component testing for React applications.
    - **Path**: `C:\Users\dany_\.agents\skills\jest-react-testing`
 
-7. **linter-formatter-init**
+6. **linter-formatter-init**
    - **Purpose**: Setup for ESLint, Prettier, and code quality tools.
    - **Path**: `C:\Users\dany_\.agents\skills\linter-formatter-init`
 
-8. **mobile-design**
+7. **mobile-design**
    - **Purpose**: Mobile-first design patterns and responsive UI.
    - **Path**: `C:\Users\dany_\.agents\skills\mobile-design`
 
-9. **next-best-practices**
+8. **next-best-practices**
    - **Purpose**: Architecture and performance optimization for Next.js.
    - **Path**: `C:\Users\dany_\.agents\skills\next-best-practices`
 
-10. **playwright-skill**
-    - **Purpose**: Browser automation and cross-browser testing.
-    - **Path**: `C:\Users\dany_\.agents\skills\playwright-skill`
+9. **playwright-skill**
+   - **Purpose**: Browser automation and cross-browser testing.
+   - **Path**: `C:\Users\dany_\.agents\skills\playwright-skill`
 
-11. **refactor**
+10. **refactor**
     - **Purpose**: General code cleaning and refactoring tools.
     - **Path**: `C:\Users\dany_\.agents\skills\refactor`
 
-12. **shadcn-ui-expert**
+11. **shadcn-ui-expert**
     - **Purpose**: Expert usage of shadcn/ui components and design systems.
     - **Path**: `C:\Users\dany_\.agents\skills\shadcn-ui-expert`
 
-13. **tailwind-design-system**
+12. **tailwind-design-system**
     - **Purpose**: Professional Tailwind CSS configurations and utlities.
     - **Path**: `C:\Users\dany_\.agents\skills\tailwind-design-system`
 

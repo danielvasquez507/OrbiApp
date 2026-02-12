@@ -29,7 +29,7 @@ export function QuickCapture() {
     const [open, setOpen] = React.useState(false)
     const [loading, setLoading] = React.useState(false)
 
-    // Listen for Cmd+K / Ctrl+K
+    // Escuchar Cmd+K / Ctrl+K
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "k") {
